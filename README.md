@@ -75,9 +75,9 @@ tm-binary-addition/
 
 ## 👥 Team Members
 
-- **Shaheer Uddin Ahmed**
-- **Yahya Shaikh**
-- **Faizan Jawaid**
+- **Shaheer Uddin Ahmed (23K-0649)**
+- **Yahya Shaikh (23K-0718)**
+- **Faizan Jawaid (23K-0688)**
 
 ---
 
