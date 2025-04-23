@@ -323,15 +323,29 @@ def binary_addition_turing():
     # State machine implementation
     while current_state not in ['q_accept', 'q_reject']:
         draw_tapes()
-        pygame.time.delay(500)  # Delay between state transitions
+        pygame.time.delay(500)
         
         if current_state == 'q0':
+            # Validate input before processing
+            valid = True
+            for tape in ["Input_1", "Input_2"]:
+                pos = Tape_heads[tape]
+                while pos < len(Tapes[tape]) and Tapes[tape][pos] != '_':
+                    if Tapes[tape][pos] not in ['0', '1']:
+                        valid = False
+                        break
+                    pos += 1
+            
+            if not valid:
+                current_state = 'q_reject'
+                continue
+                
             # Move all heads to the rightmost digit
             for tape in ["Input_1", "Input_2"]:
                 while Tapes[tape][Tape_heads[tape]] != '_':
                     move_head(tape, "Right")
-                    pygame.time.delay(200)  # Delay during head movement
-                move_head(tape, "Left")  # Move back to last digit
+                    pygame.time.delay(200)
+                move_head(tape, "Left")
                 pygame.time.delay(200)
             current_state = 'q1'
             
@@ -341,67 +355,69 @@ def binary_addition_turing():
             b = Tapes["Input_2"][Tape_heads["Input_2"]]
             
             if a == '_' and b == '_':
-                current_state = 'q4'  # Check for final carry
+                current_state = 'q4'
             else:
-                current_state = 'q2'  # Process this digit
-            pygame.time.delay(300)  # Pause for decision
+                current_state = 'q2'
+            pygame.time.delay(300)
                 
         elif current_state == 'q2':
-            # Get current digits (or '0' if blank)
+            # Get current digits
             a = Tapes["Input_1"][Tape_heads["Input_1"]] if Tapes["Input_1"][Tape_heads["Input_1"]] != '_' else '0'
             b = Tapes["Input_2"][Tape_heads["Input_2"]] if Tapes["Input_2"][Tape_heads["Input_2"]] != '_' else '0'
             
-            # Calculate sum and new carry
+            # Additional input validation during processing
+            if a not in ['0', '1'] or b not in ['0', '1']:
+                current_state = 'q_reject'
+                continue
+                
             sum_bits = int(a) + int(b) + int(carry)
             result = str(sum_bits % 2)
             carry = '1' if sum_bits > 1 else '0'
             
-            # Write result to output tape with visual delay
             Tapes["Output"][Tape_heads["Output"]] = result
             draw_tapes()
-            pygame.time.delay(500)  # Show the write operation
+            pygame.time.delay(500)
             
-            # Erase processed digits with visual feedback
             if Tapes["Input_1"][Tape_heads["Input_1"]] != '_':
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
             if Tapes["Input_2"][Tape_heads["Input_2"]] != '_':
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
             draw_tapes()
-            pygame.time.delay(300)  # Show the erase operation
+            pygame.time.delay(300)
             
             current_state = 'q3'
             
         elif current_state == 'q3':
-            # Move all heads left for next digit with visible movement
             move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
-            pygame.time.delay(400)  # Pause after movement
+            pygame.time.delay(400)
             current_state = 'q1'
             
         elif current_state == 'q4':
-            # Check for final carry with dramatic pause
-            pygame.time.delay(500)
             if carry == '1':
                 Tapes["Output"][Tape_heads["Output"]] = '1'
                 draw_tapes()
-                pygame.time.delay(500)  # Show carry write
+                pygame.time.delay(500)
                 move_head("Output", "Left")
                 pygame.time.delay(300)
             current_state = 'q_accept'
-            
-    # Final positioning with delays
+    
+    # Final state handling
     if current_state == 'q_accept':
-        # Move output head to the start of the result
-        
         while Tapes["Output"][Tape_heads["Output"]] == '_':
             move_head("Output", "Right")
             pygame.time.delay(200)
         pygame.time.delay(300)
         
-        # Show acceptance with celebration delay
         result_text = font.render("Addition Complete!", True, GREEN)
         screen.blit(result_text, (width//2 - 100, 550))
-        pygame.display.flip()
-        pygame.time.delay(2000)  # Final pause to see result
+    elif current_state == 'q_reject':
+        draw_tapes()
+        error_text = font.render("Invalid Input - Rejected!", True, RED)
+        screen.blit(error_text, (width//2 - 150, 550))
+    
+    pygame.display.flip()
+    pygame.time.delay(2000)
+
 
 
         
