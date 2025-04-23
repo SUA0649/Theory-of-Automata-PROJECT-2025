@@ -63,9 +63,17 @@ Delay = 100
 
 #Normal Variables 
 Steps = 0
-States = {
-    
+current_state = 'q0'
+STATES = {
+    'q0': 'Start - move to end',
+    'q1': 'Find rightmost bits',
+    'q2': 'Process addition',
+    'q3': 'Handle carry',
+    'q4': 'Final carry check',
+    'q_accept': 'Accept state',
+    'q_reject': 'Reject state'
 }
+operation = ""
 
 String_Output = ["Accepted","Rejected"]
 
@@ -135,6 +143,9 @@ def draw_tapes(offsets=None):
             (head_x + 10, y - 30)
         ])
 
+    state_text = font.render(f"State: {current_state} ({STATES[current_state]})", True, BLACK)
+    screen.blit(state_text, (50, 500))
+    
     pygame.display.flip()
 
 def move_head(tape_name, direction):
@@ -266,7 +277,9 @@ def get_input():
                     input_text = input_text[:-1]
                 else:
                     input_text += event.unicode
-    
+
+   
+
     return input_text
 
 def initialize_tape(tape_name, input_str):
@@ -297,45 +310,132 @@ def setup_tape_2():
             i += 1
             j += 1
 
+    while i >= 0 and Tapes["Input_1"][i-1] == '_':
+        i -= 1
+        move_head("Input_1", "Left")
 
 
+def binary_addition_turing():
+    global current_state
+    carry = '0'
+    current_state = 'q0'
+    
+    # State machine implementation
+    while current_state not in ['q_accept', 'q_reject']:
+        draw_tapes()
+        pygame.time.delay(500)  # Delay between state transitions
+        
+        if current_state == 'q0':
+            # Move all heads to the rightmost digit
+            for tape in ["Input_1", "Input_2"]:
+                while Tapes[tape][Tape_heads[tape]] != '_':
+                    move_head(tape, "Right")
+                    pygame.time.delay(200)  # Delay during head movement
+                move_head(tape, "Left")  # Move back to last digit
+                pygame.time.delay(200)
+            current_state = 'q1'
+            
+        elif current_state == 'q1':
+            # Check if we've processed all digits
+            a = Tapes["Input_1"][Tape_heads["Input_1"]]
+            b = Tapes["Input_2"][Tape_heads["Input_2"]]
+            
+            if a == '_' and b == '_':
+                current_state = 'q4'  # Check for final carry
+            else:
+                current_state = 'q2'  # Process this digit
+            pygame.time.delay(300)  # Pause for decision
+                
+        elif current_state == 'q2':
+            # Get current digits (or '0' if blank)
+            a = Tapes["Input_1"][Tape_heads["Input_1"]] if Tapes["Input_1"][Tape_heads["Input_1"]] != '_' else '0'
+            b = Tapes["Input_2"][Tape_heads["Input_2"]] if Tapes["Input_2"][Tape_heads["Input_2"]] != '_' else '0'
+            
+            # Calculate sum and new carry
+            sum_bits = int(a) + int(b) + int(carry)
+            result = str(sum_bits % 2)
+            carry = '1' if sum_bits > 1 else '0'
+            
+            # Write result to output tape with visual delay
+            Tapes["Output"][Tape_heads["Output"]] = result
+            draw_tapes()
+            pygame.time.delay(500)  # Show the write operation
+            
+            # Erase processed digits with visual feedback
+            if Tapes["Input_1"][Tape_heads["Input_1"]] != '_':
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+            if Tapes["Input_2"][Tape_heads["Input_2"]] != '_':
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+            draw_tapes()
+            pygame.time.delay(300)  # Show the erase operation
+            
+            current_state = 'q3'
+            
+        elif current_state == 'q3':
+            # Move all heads left for next digit with visible movement
+            move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+            pygame.time.delay(400)  # Pause after movement
+            current_state = 'q1'
+            
+        elif current_state == 'q4':
+            # Check for final carry with dramatic pause
+            pygame.time.delay(500)
+            if carry == '1':
+                Tapes["Output"][Tape_heads["Output"]] = '1'
+                draw_tapes()
+                pygame.time.delay(500)  # Show carry write
+                move_head("Output", "Left")
+                pygame.time.delay(300)
+            current_state = 'q_accept'
+            
+    # Final positioning with delays
+    if current_state == 'q_accept':
+        # Move output head to the start of the result
+        
+        while Tapes["Output"][Tape_heads["Output"]] == '_':
+            move_head("Output", "Right")
+            pygame.time.delay(200)
+        pygame.time.delay(300)
+        
+        # Show acceptance with celebration delay
+        result_text = font.render("Addition Complete!", True, GREEN)
+        screen.blit(result_text, (width//2 - 100, 550))
+        pygame.display.flip()
+        pygame.time.delay(2000)  # Final pause to see result
+
+
+        
+def perform_operation():
+    """Perform the appropriate operation based on the operand"""
+    
+    if operation == '+':
+        binary_addition_turing()
+    elif operation == '-':
+        pass  # Will implement subtraction later
+    elif operation == '*':
+        pass  # Will implement multiplication later
+    else:
+        raise ValueError("Unsupported operation")
+
+def set_operation():
+    global operation
+    for symbol in Tapes["Input_1"]:
+        if symbol == '+':
+            operation = '+'
+            break
 
 
 def main():
-    #Get user input
+    # Get user input
     user_input = get_input()
     
-    #Initialize tapes
+    # Initialize tapes
     initialize_tape("Input_1", user_input)
-    #Put this somehow in running loop and do some technical changes otherwise you can't close the window here or make a way to check for events in this later
-    #Nevermind i hnadled it (Like a boss)
+    set_operation()
+    
     setup_tape_2()
-    
-    # Main loop
-    running = True
-    while running:
-    
-        #There is queue of events and just checking what these events are doing
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-    
-        #Move Output tape separately
-
-        #Example for moving:
-
-        #First animatioun will be happening in the setup_tape_2 function so don't be alarmed
-
-        #Example for 1 tape:
-        move_head("Input_1","Right")
-        #Example for 2 tapes:
-        move_two_heads("Input_1","Right","Input_2","Right")
-        #Example for 3 tapes:
-        move_three_heads("Input_1","Right","Input_2","Right","Output","Right")       
-        
-        running = False  # Just for demonstration
-
-    pygame.quit()
+    # Perform the operation
+    perform_operation()
 
 if __name__ == "__main__":
     main()
