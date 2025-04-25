@@ -64,15 +64,7 @@ Delay = 100
 #Normal Variables 
 Steps = 0
 current_state = 'q0'
-STATES = {
-    'q0': 'Start - move to end',
-    'q1': 'Find rightmost bits',
-    'q2': 'Process addition',
-    'q3': 'Handle carry',
-    'q4': 'Final carry check',
-    'q_accept': 'Accept state',
-    'q_reject': 'Reject state'
-}
+
 operation = ""
 
 String_Output = ["Accepted","Rejected"]
@@ -84,6 +76,9 @@ def ease_in_out(t):
         return 2 * t * t
     else:
         return -1 + (4 - 2 * t) * t
+
+#Update each tapes without moving
+
 
 #Drawing each tape (in 1 frame)
 def draw_tapes(offsets=None):
@@ -152,10 +147,11 @@ def move_head(tape_name, direction):
     """Move a single tape head"""
     offset = 0
     
+   
     # Animate movement
     for step in range(steps):
      
-        #t is simulating time interval
+            #t is simulating time interval
         t = step / (steps - 1)
         
         
@@ -289,6 +285,7 @@ def initialize_tape(tape_name, input_str):
         pos += 1
 
 def setup_tape_2():
+    
     i = Tape_heads["Input_1"]
     j = Tape_heads["Input_2"]
     
@@ -315,110 +312,172 @@ def setup_tape_2():
         move_head("Input_1", "Left")
 
 
+STATES = {
+    'add_q0': 'Initial scan right',
+    'add_q1': 'Copy to tape 2',
+    'add_q2': 'Move heads left',
+    'add_q3': 'Perform addition',
+    'add_q4': 'Add with Carry',
+    'add_q5': 'Accept state',
+    'add_q_reject': 'Reject state',
+
+    'sub_q0': 'Initial scan right',
+    'sub_q1': 'Copy to tape 2',
+    'sub_q2': 'Move heads left',
+    'sub_q3': 'Perform 2s compliment',
+    'sub_q4': 'Moving right of tape 2',
+    'sub_q5': 'Perform addition',
+    'sub_q6': 'Add with carry',
+    'sub_q7': 'Accept state',
+    'sub_q_reject': 'Reject state'
+
+}
+
 def binary_addition_turing():
     global current_state
-    carry = '0'
-    current_state = 'q0'
+    current_state = 'add_q0'
     
-    # State machine implementation
-    while current_state not in ['q_accept', 'q_reject']:
+    while current_state not in ['add_q5', 'add_q_reject']:
         draw_tapes()
-        pygame.time.delay(500)
-        
-        if current_state == 'q0':
-            # Validate input before processing
-            valid = True
-            for tape in ["Input_1", "Input_2"]:
-                pos = Tape_heads[tape]
-                while pos < len(Tapes[tape]) and Tapes[tape][pos] != '_':
-                    if Tapes[tape][pos] not in ['0', '1']:
-                        valid = False
-                        break
-                    pos += 1
-            
-            if not valid:
-                current_state = 'q_reject'
-                continue
-                
-            # Move all heads to the rightmost digit
-            for tape in ["Input_1", "Input_2"]:
-                while Tapes[tape][Tape_heads[tape]] != '_':
-                    move_head(tape, "Right")
-                    pygame.time.delay(200)
-                move_head(tape, "Left")
-                pygame.time.delay(200)
-            current_state = 'q1'
-            
-        elif current_state == 'q1':
-            # Check if we've processed all digits
-            a = Tapes["Input_1"][Tape_heads["Input_1"]]
-            b = Tapes["Input_2"][Tape_heads["Input_2"]]
-            
-            if a == '_' and b == '_':
-                current_state = 'q4'
-            else:
-                current_state = 'q2'
-            pygame.time.delay(300)
-                
-        elif current_state == 'q2':
-            # Get current digits
-            a = Tapes["Input_1"][Tape_heads["Input_1"]] if Tapes["Input_1"][Tape_heads["Input_1"]] != '_' else '0'
-            b = Tapes["Input_2"][Tape_heads["Input_2"]] if Tapes["Input_2"][Tape_heads["Input_2"]] != '_' else '0'
-            
-            # Additional input validation during processing
-            if a not in ['0', '1'] or b not in ['0', '1']:
-                current_state = 'q_reject'
-                continue
-                
-            sum_bits = int(a) + int(b) + int(carry)
-            result = str(sum_bits % 2)
-            carry = '1' if sum_bits > 1 else '0'
-            
-            Tapes["Output"][Tape_heads["Output"]] = result
-            draw_tapes()
-            pygame.time.delay(500)
-            
-            if Tapes["Input_1"][Tape_heads["Input_1"]] != '_':
-                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
-            if Tapes["Input_2"][Tape_heads["Input_2"]] != '_':
-                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
-            draw_tapes()
-            pygame.time.delay(300)
-            
-            current_state = 'q3'
-            
-        elif current_state == 'q3':
-            move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
-            pygame.time.delay(400)
-            current_state = 'q1'
-            
-        elif current_state == 'q4':
-            if carry == '1':
-                Tapes["Output"][Tape_heads["Output"]] = '1'
-                draw_tapes()
-                pygame.time.delay(500)
-                move_head("Output", "Left")
-                pygame.time.delay(300)
-            current_state = 'q_accept'
-    
-    # Final state handling
-    if current_state == 'q_accept':
-        while Tapes["Output"][Tape_heads["Output"]] == '_':
-            move_head("Output", "Right")
-            pygame.time.delay(200)
         pygame.time.delay(300)
         
-        result_text = font.render("Addition Complete!", True, GREEN)
-        screen.blit(result_text, (width//2 - 100, 550))
-    elif current_state == 'q_reject':
-        draw_tapes()
-        error_text = font.render("Invalid Input - Rejected!", True, RED)
-        screen.blit(error_text, (width//2 - 150, 550))
+        # Get current symbols
+        a = Tapes["Input_1"][Tape_heads["Input_1"]]
+        b = Tapes["Input_2"][Tape_heads["Input_2"]]
+        c = Tapes["Input_2"][Tape_heads["Output"]]
+
+        # State transitions
+        if current_state == 'add_q0':
+            if a in ['0', '1']:
+                move_head("Input_1", "Right")
+            elif a == '+':
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                move_head("Input_1", "Right")
+                current_state = 'add_q1'
+            else:
+                current_state = 'add_q_reject'
+                
+        elif current_state == 'add_q1':
+            if a in ['0', '1']:
+                Tapes["Input_2"][Tape_heads["Input_2"]] = a
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                move_two_heads("Input_1", "Right","Input_2", "Right")
+            elif a == '_':
+                current_state = 'add_q2'
+            else:
+                current_state = 'add_q_reject'
+                
+        elif current_state == 'add_q2':
+            if a == '_':
+                move_head("Input_1", "Left")
+            elif a in ['0', '1']:
+                move_head("Input_2", "Left")
+                current_state = 'add_q3'
+
+        elif current_state == 'add_q3':
+            if a == '1' and b == '1':
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '0'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q4'
+            
+            elif a == '1' and b in ['0','_']:
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '1'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q3'
+
+            elif a in ['0','_'] and b == '1':
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '1'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q3'
+            elif a == '0' and b in ['0','_']:
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '0'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q3'
+            elif a in ['0','_'] and b == '0':
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '0'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q3'
+        
+            elif a == '_' and b == '_' and c == '_':
+                current_state = 'add_q5'
+            
+            else:
+                current_state = 'add_q_reject'
+                
+        elif current_state == 'add_q4':
+            if a == '1' and b == '1':
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '1'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q4'
+            
+            if a == '1' and b in ['0','_']:
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '0'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q4'
+
+            if a in ['0','_'] and b == '1':
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '0'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q4'
+
+            elif a in ['0','_'] and b == '0':
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '1'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q3'
+            
+            elif a == '0' and b in ['0','_']:
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '1'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q3'
+
+
+            elif a == '_' and b == '_':
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '1'
+                current_state = 'add_q5'
+                draw_tapes()
+            else:
+                current_state = 'add_q_reject'
     
+    # Final display
+    result_text = font.render(
+        "Addition Complete!" if current_state == 'add_q5' else "Invalid Input - Rejected!",
+        True, GREEN if current_state == 'add_q5' else RED
+    )
+    screen.blit(result_text, (width//2 - 150, 550))
     pygame.display.flip()
     pygame.time.delay(2000)
 
 
+
+
+def binary_subtraction_turing():
+    global current_state
+    current_state = "sub_q0"
+
+    while current_state not in ["sub_q7","sub_q_reject"]:
+            a = 1
 
         
 def perform_operation():
@@ -427,7 +486,7 @@ def perform_operation():
     if operation == '+':
         binary_addition_turing()
     elif operation == '-':
-        pass  # Will implement subtraction later
+        binary_subtraction_turing()
     elif operation == '*':
         pass  # Will implement multiplication later
     else:
@@ -448,8 +507,7 @@ def main():
     # Initialize tapes
     initialize_tape("Input_1", user_input)
     set_operation()
-    
-    setup_tape_2()
+
     # Perform the operation
     perform_operation()
 
