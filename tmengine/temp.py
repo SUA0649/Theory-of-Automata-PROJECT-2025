@@ -253,7 +253,7 @@ def get_input():
     
     while active:
         screen.fill(BLACK)
-        prompt = font.render("Enter the two binary digits in the form of (101+101):", True, WHITE)
+        prompt = font.render("Enter the two binary digits in the form of (Input1 + Input2) or (Input1 - Input2):", True, WHITE)
         display_text = font.render(input_text, True, CYAN)
         
         #(100,100) here = x and y co-ordinates
@@ -288,26 +288,42 @@ def setup_tape_2():
     
     i = Tape_heads["Input_1"]
     j = Tape_heads["Input_2"]
-    
-    # Find the '+' separator
-    while i < len(Tapes["Input_1"]) and Tapes["Input_1"][i] != '+':
+
+    while i < len(Tapes["Input_1"]) and Tapes["Input_1"][i] not in ['+', '-']:
         i += 1
         move_head("Input_1", "Right")
-    
-    if i < len(Tapes["Input_1"]) and Tapes["Input_1"][i] == '+':
+
+    if i < len(Tapes["Input_1"]) and Tapes["Input_1"][i] in ['+', '-']:
+        is_subtraction = Tapes["Input_1"][i] == '-'
         Tapes["Input_1"][i] = '_'
         move_head("Input_1", "Right")
         i += 1
-        
-        # Copy the second number to Input_2
+
         while i < len(Tapes["Input_1"]) and Tapes["Input_1"][i] != '_':
-            Tapes["Input_2"][j] = Tapes["Input_1"][i]    
+            bit = Tapes["Input_1"][i]
+            if is_subtraction:
+                # Flip bits for 1's complement
+                bit = '1' if bit == '0' else '0'
+            Tapes["Input_2"][j] = bit
             Tapes["Input_1"][i] = '_'
             move_two_heads("Input_1", "Right", "Input_2", "Right")
             i += 1
             j += 1
 
-    while i >= 0 and Tapes["Input_1"][i-1] == '_':
+        if is_subtraction:
+            # Add 1 to LSB of Input_2
+            k = j - 1
+            while k >= 0:
+                if Tapes["Input_2"][k] == '0':
+                    Tapes["Input_2"][k] = '1'
+                    break
+                elif Tapes["Input_2"][k] == '1':
+                    Tapes["Input_2"][k] = '0'
+                    k -= 1
+                else:
+                    break
+
+    while i >= 0 and Tapes["Input_1"][i - 1] == '_':
         i -= 1
         move_head("Input_1", "Left")
 
@@ -486,7 +502,7 @@ def perform_operation():
     if operation == '+':
         binary_addition_turing()
     elif operation == '-':
-        binary_subtraction_turing()
+        binary_addition_turing()
     elif operation == '*':
         pass  # Will implement multiplication later
     else:
@@ -497,6 +513,9 @@ def set_operation():
     for symbol in Tapes["Input_1"]:
         if symbol == '+':
             operation = '+'
+            break
+        elif symbol == '-':
+            operation = '-'
             break
 
 
