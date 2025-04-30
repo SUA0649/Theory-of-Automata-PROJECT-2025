@@ -351,10 +351,8 @@ STATES = {
 
 def binary_addition_turing():
     global current_state
-    if current_state != 'add_q2':
-        current_state = 'add_q0'
-    else:
-        check=True
+    current_state = 'add_q0'
+    
     while current_state not in ['add_q5', 'add_q_reject']:
         draw_tapes()
         pygame.time.delay(300)
@@ -479,14 +477,8 @@ def binary_addition_turing():
                 current_state = 'add_q_reject'
     
     # Final display
-    if check!=True:
-        result_text = font.render(
-            "Addition Complete!" if current_state == 'add_q5' else "Invalid Input - Rejected!",
-            True, GREEN if current_state == 'add_q5' else RED
-        )
-    else:
-        result_text = font.render(
-        "Subtraction Complete!" if current_state == 'add_q5' else "Invalid Input - Rejected!",
+    result_text = font.render(
+        "Addition Complete!" if current_state == 'add_q5' else "Invalid Input - Rejected!",
         True, GREEN if current_state == 'add_q5' else RED
     )
     screen.blit(result_text, (width//2 - 150, 550))
@@ -499,70 +491,111 @@ def binary_addition_turing():
 def binary_subtraction_turing():
     global current_state
     current_state = 'sub_q0'
-
-    while current_state not in ['sub_q7', 'sub_q_reject'] or ['add_q2']:
+    
+    while current_state not in ['sub_q7', 'sub_q_reject']:
         draw_tapes()
         pygame.time.delay(300)
-
+        
+        # Get current symbols
         a = Tapes["Input_1"][Tape_heads["Input_1"]]
         b = Tapes["Input_2"][Tape_heads["Input_2"]]
-
+        
+        # State transitions
         if current_state == 'sub_q0':
+            # Initial scan right to find '-' separator
             if a in ['0', '1']:
                 move_head("Input_1", "Right")
             elif a == '-':
-                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'  # Remove the '-'
                 move_head("Input_1", "Right")
                 current_state = 'sub_q1'
             else:
                 current_state = 'sub_q_reject'
-
+                
         elif current_state == 'sub_q1':
+            # Copy digits to Input_2 while flipping bits (1's complement)
             if a in ['0', '1']:
+                # Flip the bit and write to Input_2
                 flipped = '1' if a == '0' else '0'
                 Tapes["Input_2"][Tape_heads["Input_2"]] = flipped
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 move_two_heads("Input_1", "Right", "Input_2", "Right")
             elif a == '_':
-                move_head("Input_2", "Left")
+                # Reached end of second number, now add 1 for 2's complement
+                move_head("Input_2", "Left")  # Move back to last digit
                 current_state = 'sub_q2'
             else:
                 current_state = 'sub_q_reject'
-
+                
         elif current_state == 'sub_q2':
+            # Add 1 to complete 2's complement
             if b == '0':
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '1'
-                current_state = 'sub_q3'
+                current_state = 'sub_q3'  # Done with 2's complement
             elif b == '1':
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '0'
                 move_head("Input_2", "Left")
             elif b == '_':
+                # This means we carried past the first digit, need to write 1
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '1'
                 current_state = 'sub_q3'
             else:
                 current_state = 'sub_q_reject'
-
+        
         elif current_state == 'sub_q3':
-            if Tapes["Input_1"][Tape_heads["Input_1"]-1] == '_':
-                move_head("Input_1", "Left")
+            # Move both heads to position just right of LSB
+            # For Input_1 (first number)
+            if Tapes["Input_1"][Tape_heads["Input_1"]] in ['0', '1']:
+                move_head("Input_1", "Right")
             elif Tapes["Input_1"][Tape_heads["Input_1"]] == '_':
+                # Found blank after number, move left to last digit
+                move_head("Input_1", "Left")
+                # Then move right one position to be just right of LSB
+                move_head("Input_1", "Right")
                 current_state = 'sub_q4'
             else:
                 current_state = 'sub_q_reject'
-
+                
         elif current_state == 'sub_q4':
+            # For Input_2 (second number in 2's complement)
             if Tapes["Input_2"][Tape_heads["Input_2"]] in ['0', '1']:
                 move_head("Input_2", "Right")
             elif Tapes["Input_2"][Tape_heads["Input_2"]] == '_':
-                current_state = 'add_q2'
+                # Found blank after number, move left to last digit
+                move_head("Input_2", "Left")
+                # Then move right one position to be just right of LSB
+                move_head("Input_2", "Right")
+                current_state = 'sub_q5'
             else:
                 current_state = 'sub_q_reject'
-
-        elif current_state == 'add_q2':
-            binary_addition_turing()
-            return
+                
+        elif current_state == 'sub_q5':
+            # Now move both heads left together to MSB position
+            # Check if we're at the start of both numbers
+            at_start_1 = (Tape_heads["Input_1"] == 0 or 
+                         Tapes["Input_1"][Tape_heads["Input_1"] - 1] == '_')
+            at_start_2 = (Tape_heads["Input_2"] == 0 or 
+                         Tapes["Input_2"][Tape_heads["Input_2"] - 1] == '_')
+            
+            if not at_start_1 and not at_start_2:
+                move_two_heads("Input_1", "Left", "Input_2", "Left")
+            elif not at_start_1:
+                move_head("Input_1", "Left")
+            elif not at_start_2:
+                move_head("Input_2", "Left")
+            else:
+                # Both heads at MSB, now perform addition
+                current_state = 'sub_q7'
+                # Call binary addition
+                binary_addition_turing()
+                return
     
     # Final display
+    result_text = font.render(
+        "Subtraction Complete!" if current_state == 'sub_q7' else "Invalid Input - Rejected!",
+        True, GREEN if current_state == 'sub_q7' else RED
+    )
+    screen.blit(result_text, (width//2 - 150, 550))
     pygame.display.flip()
     pygame.time.delay(2000)
 
