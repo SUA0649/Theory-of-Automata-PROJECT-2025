@@ -484,7 +484,9 @@ def binary_addition_turing():
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
                 Tapes["Output"][Tape_heads["Output"]] = '1'
-
+                if operation == '-':
+                    Tapes["Output"][Tape_heads["Output"]] = '_'
+                        
                 current_state = 'add_q5'        
                 draw_tapes()
             else:
@@ -550,7 +552,7 @@ def binary_subtraction_turing():
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '0'
                 move_head("Input_2", "Left")
             elif b == '_':
-                Tapes["Input_2"][Tape_heads["Input_2"]] = '1'
+                move_head("Input_2", "Right")
                 current_state = 'sub_q3'
             else:
                 current_state = 'sub_q_reject'
