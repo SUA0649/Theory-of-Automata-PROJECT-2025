@@ -351,6 +351,7 @@ STATES = {
 
 def binary_addition_turing():
     global current_state
+    check = False
     if current_state != 'add_q2':
         current_state = 'add_q0'
     else:
@@ -440,14 +441,14 @@ def binary_addition_turing():
                 move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
                 current_state = 'add_q4'
             
-            if a == '1' and b in ['0','_']:
+            elif a == '1' and b in ['0','_']:
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
                 Tapes["Output"][Tape_heads["Output"]] = '0'
                 move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
                 current_state = 'add_q4'
 
-            if a in ['0','_'] and b == '1':
+            elif a in ['0','_'] and b == '1':
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
                 Tapes["Output"][Tape_heads["Output"]] = '0'
