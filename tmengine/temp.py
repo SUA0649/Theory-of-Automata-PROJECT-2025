@@ -279,8 +279,16 @@ def get_input():
     return input_text
 
 def initialize_tape(tape_name, input_str):
+    left,right = input_str.split(operation)
+    max_len = max(len(left), len(right))
+
+    left = left.zfill(max_len)
+    right = right.zfill(max_len)
+
+    result = f"{left}{operation}{right}"
+
     pos = Tape_heads[tape_name]
-    for char in input_str:
+    for char in result:
         Tapes[tape_name][pos] = char
         pos += 1
 
@@ -350,6 +358,8 @@ STATES = {
 }
 
 def binary_addition_turing():
+    carry = 0 #for subtraction
+
     global current_state
     check = False
     if current_state != 'add_q2':
@@ -474,10 +484,12 @@ def binary_addition_turing():
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
                 Tapes["Output"][Tape_heads["Output"]] = '1'
-                current_state = 'add_q5'
+
+                current_state = 'add_q5'        
                 draw_tapes()
             else:
                 current_state = 'add_q_reject'
+
     
     # Final display
     if check!=True:
@@ -580,9 +592,9 @@ def perform_operation():
     else:
         raise ValueError("Unsupported operation")
 
-def set_operation():
+def set_operation(user_input):
     global operation
-    for symbol in Tapes["Input_1"]:
+    for symbol in user_input:
         if symbol == '+':
             operation = '+'
             break
@@ -596,8 +608,8 @@ def main():
     user_input = get_input()
     
     # Initialize tapes
+    set_operation(user_input)
     initialize_tape("Input_1", user_input)
-    set_operation()
 
     # Perform the operation
     perform_operation()
