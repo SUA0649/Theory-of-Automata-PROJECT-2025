@@ -1,95 +1,71 @@
-# 🧠 Turing Machine Simulator for Binary Addition
+# 🧠 Single-File Turing Machine Simulator for Binary Operations
 
-A simulation of a Turing Machine that performs **binary addition** of two binary numbers separated by a delimiter (e.g., `101+011`). This project includes a **graphical user interface (GUI)** that visually represents the tape, head movement, state transitions, and final output.
+## 📌 Project Overview
+This compact implementation features a **complete multi-tape Turing Machine simulator** in a single Python file, performing three core binary operations:
+- Binary Addition
+- Binary Subtraction (2's complement method)
+- Binary Multiplication (via repeated addition)
 
----
+## ✨ Key Features
 
-## 📌 Features
+### Core Functionality
+- ✅ **All-in-one implementation** in a single Python file
+- ➕ **Addition**, **➖ Subtraction**, **✖️ Multiplication** support
+- 🧠 Unified state machine handling all operations
+- 🏎️ **Optimized performance** despite single-file design
 
-- ✅ Simulates Turing Machine logic for binary addition
-- 🧾 Takes input in format: `binary1+binary2` (e.g., `101+011`)
-- 🧠 Bit-by-bit computation with carry logic
-- 🎛️ GUI built using **Python Tkinter** (or PyQt)
-- 📽️ Step-by-step execution and auto-run mode
-- 🧾 Tape visualization with head and state display
-- 🖼️ Snapshot feature to capture each computation step
+### Visualization Features
+- 🎮 **Pygame-powered interface** with:
+  - Multi-tape visualization
+  - Animated head movements
+  - Real-time state display
+  - Operation progress tracking
 
----
+## 🖥️ Interface Components
 
-## 🖥️ GUI Overview
+### Built-in Controls:
+- **Tape Display**: Shows Input_1, Input_2, and Output tapes
+- **State Indicator**: Current operation and phase
+- **Execution Controls**:
+  - Step-through execution
+  - Continuous run mode
+  - Pause/Resume
+  - Reset functionality
 
-- **Input Field**: Enter binary string in format `101+011`
-- **Tape Display**: Visualizes the tape with symbols and head position
-- **State Info**: Shows current Turing Machine state and step number
-- **Control Buttons**: Start, Step, Auto Run, Pause, Reset
-- **Output Section**: Displays the final binary sum
+## 🚀 Quick Start
 
----
+### Requirements
+- Python 3.6+
+- Pygame 2.0+ (`pip install pygame`)
 
-## 📷 Screenshots
-
-> Add screenshots or GIFs here once GUI is built  
-> Example:
-> ![Tape Simulation](screenshots/tape_example.png)
-
----
-
-## ⚙️ How It Works
-
-1. User enters binary input (e.g., `101+011`) in the GUI.
-2. Input is parsed and placed on an emulated Turing Machine tape.
-3. Turing Machine begins in an initial state and processes the input bit by bit from right to left.
-4. It simulates carry logic, head movement, and transitions between states.
-5. Final sum is written on the tape and displayed in the output section.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.x
-- Tkinter (pre-installed with Python) or PyQt5 (if using PyQt)
-
-### Installation
-
+### Usage
 ```bash
-git clone https://github.com/your-username/tm-binary-addition.git
-cd tm-binary-addition
-python main.py
-```
----
-
-## 🧩 Folder Structure
-
-```
-tm-binary-addition/
-├── gui/                # GUI components
-├── tm_engine/          # Core Turing Machine logic
-├── assets/             # Snapshots, images, etc.
-├── main.py             # Entry point
-└── README.md           # This file
+python tm_engine.py
 ```
 
----
+## 📋 File Structure
+```
+project/
+└── tm_engine/
+    └── tm_engine.py      # Complete simulator implementation
+```
 
-## 👥 Team Members
-
+## 👥 Development Team
 - **Shaheer Uddin Ahmed (23K-0649)**
 - **Yahya Shaikh (23K-0718)**
 - **Faizan Jawaid (23K-0688)**
 
----
+## 📚 Educational Value
+Demonstrates:
+- Multi-tape Turing Machine principles
+- Binary operation algorithms
+- State transition systems
+- Computational complexity
 
-## 📚 References
+## 💡 Key Implementation Details
+- **Unified State Machine**: Handles all operations through state transitions
+- **Tape Management**: Simulates multiple tapes within single data structures
+- **Visualization**: Integrated Pygame rendering for real-time feedback
+- **Efficient Design**: Maintains clean architecture despite single-file constraint
 
-- Course: Theory of Automata – FAST NUCES Karachi
-- Turing Machine Theory: Sipser, Michael – "Introduction to the Theory of Computation"
-- Binary addition logic and Turing simulations (YouTube, GitHub open repos)
-
----
-
-## 📜 License
-
-This project is for academic use only. All rights reserved © 2025.
-
+Note: This single-file implementation contains all the functionality of a multi-tape Turing Machine simulator while being completely self-contained.
