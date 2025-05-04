@@ -320,34 +320,6 @@ def initialize_tape_for_subtraction(tape_name, input_str):
         Tapes[tape_name][pos] = char
         pos += 1
 
-STATES = {
-    'add_q0': 'Initial scan right',
-    'add_q1': 'Copy to tape 2',
-    'add_q2': 'Move heads left',
-    'add_q3': 'Perform addition',
-    'add_q4': 'Add with Carry',
-    'add_q5': 'Accept state',
-    'add_q_reject': 'Reject state',
-
-    'sub_q0': 'Initial scan right',
-    'sub_q1': 'Copy to tape 2',
-    'sub_q2': 'Move heads left',
-    'sub_q3': 'Perform 2s compliment',
-    'sub_q4': 'Moving right of tape 2',
-    'sub_q5': 'Perform addition',
-    'sub_q6': 'Add with carry',
-    'sub_q7': 'Accept state',
-    'sub_q_reject': 'Reject state',
-
-    'mul_q0': 'Initial scan right',
-    'mul_q1': 'Copy to tape 2',
-    'mul_q2': 'Move heads left',
-    'mul_q3': 'Perform multiplication',
-    'mul_q4': 'Add 0 to end',
-    'mul_q5': 'Add Carry',
-    'mul_q6': 'Accept state',
-    'mul_q_reject': 'Reject State',
-}
 
 def binary_addition_turing():
 
@@ -577,14 +549,44 @@ def binary_subtraction_turing():
     pygame.display.flip()
     pygame.time.delay(2000)
 
+STATES = {
+    'add_q0': 'Initial scan right',
+    'add_q1': 'Copy to tape 2',
+    'add_q2': 'Move heads left',
+    'add_q3': 'Perform addition',
+    'add_q4': 'Add with Carry',
+    'add_q5': 'Accept state',
+    'add_q_reject': 'Reject state',
+
+    'sub_q0': 'Initial scan right',
+    'sub_q1': 'Copy to tape 2',
+    'sub_q2': 'Move heads left',
+    'sub_q3': 'Perform 2s compliment',
+    'sub_q4': 'Moving right of tape 2',
+    'sub_q5': 'Perform addition',
+    'sub_q6': 'Add with carry',
+    'sub_q7': 'Accept state',
+    'sub_q_reject': 'Reject state',
+
+    'mul_q0': 'Initial scan right',
+    'mul_q1': 'Copy to tape 2',
+    'mul_q2': 'Move Input 1 head left',
+    'mul_q3': 'Perform multiplication',
+    'mul_q4': 'Find spot for 0 tape 2',
+    'mul_q5': 'Add 0 to Tape 2',
+    'mul_q7': 'Add with Carry',
+    'mul_q8': 'Find Spot for Multiplication',
+    'mul_q9': "Accept state",
+    'mul_q_reject': 'Reject State',
+}
+
+
+
 def binary_multiplication_turing():
-    global current_state
-    check = False
-    if current_state != 'mul_q2':
-        current_state = 'mul_q0'
-    else:
-        check = True
-    while current_state not in ['mul_q6','mul_q_reject']:
+    global current_state 
+    current_state = 'mul_q0'
+
+    while current_state not in ['mul_q9','mul_q_reject']:
         draw_tapes()
         pygame.time.delay(300)
         
@@ -595,119 +597,112 @@ def binary_multiplication_turing():
         
         # State transition
         if current_state == 'mul_q0':
+        
             if a in ['0','1']:
                 move_head("Input_1","Right")
-            elif a=='*':
+        
+            elif a =='*':
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 move_head("Input_1","Right")
                 current_state = 'mul_q1'
+        
             else:
                 current_state = 'mul_q_reject'
+        
         elif current_state == 'mul_q1':
+            
             if a in ['0','1']:
                 Tapes["Input_2"][Tape_heads["Input_2"]] = a
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 move_two_heads("Input_1","Right","Input_2","Right")
+
             elif a == '_':
                 current_state = 'mul_q2'
+            
             else:
                 current_state = 'mul_q_reject'
                 
         elif current_state == 'mul_q2':
+
             if a == '_':
                 move_head("Input_1","Left")
+            
             elif a in ['0','1']:
                 move_head("Input_2","Left")
                 current_state = 'mul_q3'
                 
         elif current_state == 'mul_q3':
-            # Case for first time copy from input_2 to output 
-            if a== '_':
-                current_state='mul_q6'
-            elif a == '1' and c in ['_','0'] and b!='_':
-                #Add All B to C.
+            
+            if a == '_':
+                current_state = 'mul_q9'
+
+            elif a == '0':
+                current_state = 'mul_q5'
+
+            elif b == '_' and c == '_':
+                move_two_heads("Input_2","Right","Output","Right")
+                current_state = 'mul_q4'
+
+            elif a == '1' and c == '_':
                 Tapes["Output"][Tape_heads["Output"]] = Tapes["Input_2"][Tape_heads["Input_2"]]
                 move_two_heads("Input_2","Left","Output","Left")
-            # Case for when copying is completed.
-            elif a== '1' and b== '_' and c=='_':
-                # Shift tapes Input_2 and Output to their original position
-                move_two_heads("Input_2","Right","Output","Right")
-                while (Tapes["Input_2"][Tape_heads["Input_2"]]!='_' ):
-                    move_two_heads("Output","Right","Input_2","Right")
-                move_head('Input_1','Left')
-                current_state = 'mul_q4'
-            # Case for when only zero is to be added
-            elif a=='1' and b in ['0','1'] and c in ['0','1']:
-                current_state = 'mul_q4'
-            elif a == '0':
-                move_head('Input_1','Left')
-                current_state = 'mul_q4'
-            #Acception state
-            elif a== '_' and b == '_':
-                current_state = 'mul_q6'
-            #Rejection state
-            else:
-                current_state = 'mul_q_reject'
             
+            elif a == '1' and b == '0' and c in ['0','1']:
+                move_two_heads("Input_2","Left","Output","Left")
+            
+            elif a == '1' and b == '1' and c == '0':
+                Tapes["Output"][Tape_heads["Output"]] = Tapes["Input_2"][Tape_heads["Input_2"]]
+                move_two_heads("Input_2","Left","Output","Left")
+            
+            elif a == '1' and b == '1' and c == '1':
+                current_state = 'mul_q7'
+
+
         elif current_state == 'mul_q4':
-            # Case for when adding the zero to the tape.
-                if a == '_':
-                    move_two_heads("Output","Left","Input_2","Left")
-                    while (Tapes["Input_2"][Tape_heads["Input_2"]]!='_'):
-                        move_two_heads("Output","Left","Input_2","Left")
-                    current_state = 'mul_q6'
-                elif b=='_' and c=='_':
-                    Tapes["Input_2"][Tape_heads["Input_2"]] = '0'
-                    move_head("Output","Left")
-                    current_state = 'mul_q4'
-                    #move_head('Input_2','Right')
-            # Case for when c is longer than b
-                elif c=='_' and b in ['0','1']:
-                    Tapes["Output"][Tape_heads["Output"]] = Tapes["Input_2"][Tape_heads["Input_2"]]
-                    move_two_heads("Input_2","Left","Output","Left")
-                    current_state = 'mul_q3'
-                elif b =='1' and c=='1':
-                    Tapes["Output"][Tape_heads["Output"]] = '0'
-                    move_two_heads("Input_2","Left","Output","Left")
-                    current_state = 'mul_q5'
-                elif b =='0' and c == '1':
-                    Tapes["Output"][Tape_heads["Output"]] = '1'
-                    move_two_heads("Input_2","Left","Output","Left")
-                    current_state = 'mul_q3'
-                elif b== '1' and c=='0':
-                    Tapes["Output"][Tape_heads["Output"]] = '1'
-                    move_two_heads("Input_2","Left","Output","Left")
-                    current_state = 'mul_q3'
-                elif b =='0' and c=='0':
-                    Tapes["Output"][Tape_heads["Output"]] = '0'
-                    move_two_heads("Input_2","Left","Output","Left")
-                    current_state = 'mul_q3'
-                else:
-                    current_state = 'mul_q_reject'
-                    
-        elif current_state =='mul_q5':
-            if b=='1' and c=='1':
+
+            if b == '_':
+                current_state = 'mul_q5'
+            else:
+                move_two_heads('Input_2',"Right","Output","Right")
+            
+        elif current_state == 'mul_q5':
+            
+            Tapes["Input_2"][Tape_heads["Input_2"]] = '0'
+            move_two_heads('Input_2','Right','Input_1','Left')
+            current_state = 'mul_q8'
+
+        elif current_state == 'mul_q7':
+            
+            if b == '0' and c == '1':
+                Tapes["Output"][Tape_heads["Output"]] = "1"
+                move_two_heads("Input_2","Left","Output","Left")
+                current_state = 'mul_q3'
+
+            elif b == '1' and c == '1':
+                Tapes["Output"][Tape_heads["Output"]] = "0"
+                move_two_heads("Input_2","Left","Output","Left")
+            
+            elif b == '1' and c == '_':
+                Tapes["Output"][Tape_heads["Output"]] = "0"
+                move_two_heads("Input_2","Left","Output","Left")
+                                 
+            elif b == '_' and c == '_':
                 Tapes["Output"][Tape_heads["Output"]] = '1'
                 move_two_heads("Input_2","Left","Output","Left")
-            elif b =='0' and c == '1':
-                    Tapes["Output"][Tape_heads["Output"]] = '0'
-                    move_two_heads("Input_2","Right","Output","Left")
-            elif b== '1' and c in ['0','_']:
-                    Tapes["Output"][Tape_heads["Output"]] = '0'
+                move_two_heads("Input_2","Right","Output","Right")
+                move_two_heads("Input_2","Right","Output","Right")
+                current_state = 'mul_q4'
+            
+        elif current_state == 'mul_q8':
+                if b != '_' and c != '_':
+                    move_two_heads("Input_2","Right","Output","Right")
+                else:
                     move_two_heads("Input_2","Left","Output","Left")
-            elif b =='0' and c in ['0','_']:
-                    Tapes["Output"][Tape_heads["Output"]] = '1'
-                    move_two_heads("Input_2","Left","Output","Left")
-                    current_state='mul_q4'
-            elif b=='_' and c =='_':
-                    Tapes["Output"][Tape_heads["Output"]] = '1'
-                    move_head("Output","Left")
-                    current_state='mul_q3'
-            else:
-                    current_state = 'mul_q_reject'
+                    current_state = 'mul_q3'
+
 
         result_text = font.render(
-            "Multiplication Complete!" if current_state == 'mul_q6' else "Invalid Input - Rejected!",
+            "Multiplication Complete!" if current_state == 'mul_q9' else "Invalid Input - Rejected!",
             True, GREEN if current_state == 'mul_q5' else RED
         )
   
