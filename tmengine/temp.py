@@ -385,9 +385,16 @@ def binary_addition_turing():
             elif a in ['0', '1']:
                 move_head("Input_2", "Left")
                 current_state = 'add_q3'
-
+        
         elif current_state == 'add_q3':
-            if a == '1' and b == '1':
+            if a == '_' and b == '1' and check == True:
+                Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
+                Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
+                Tapes["Output"][Tape_heads["Output"]] = '_'
+                move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
+                current_state = 'add_q5'
+
+            elif a == '1' and b == '1':
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
                 Tapes["Output"][Tape_heads["Output"]] = '0'
@@ -407,6 +414,7 @@ def binary_addition_turing():
                 Tapes["Output"][Tape_heads["Output"]] = '1'
                 move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
                 current_state = 'add_q3'
+            
             elif a == '0' and b in ['0','_']:
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
@@ -419,7 +427,7 @@ def binary_addition_turing():
                 Tapes["Output"][Tape_heads["Output"]] = '0'
                 move_three_heads("Input_1", "Left", "Input_2", "Left", "Output", "Left")
                 current_state = 'add_q3'
-        
+
             elif a == '_' and b == '_' and c == '_':
                 current_state = 'add_q5'
             
@@ -464,19 +472,25 @@ def binary_addition_turing():
 
 
             elif a == '_' and b == '_':
+                
                 Tapes["Input_1"][Tape_heads["Input_1"]] = '_'
                 Tapes["Input_2"][Tape_heads["Input_2"]] = '_'
                 Tapes["Output"][Tape_heads["Output"]] = '1'
-
                 current_state = 'add_q5'        
                 draw_tapes()
             else:
                 current_state = 'add_q_reject'
 
-        result_text = font.render(
+        if check == False:
+            result_text = font.render(
             "Addition Complete!" if current_state == 'add_q5' else "Invalid Input - Rejected!",
             True, GREEN if current_state == 'add_q5' else RED
-        )
+            )
+        else :
+            result_text = font.render(
+            "Subtraction Complete!" if current_state == 'add_q5' else "Invalid Input - Rejected!",
+            True, GREEN if current_state == 'add_q5' else RED
+            )
   
     screen.blit(result_text, (width//2 - 150, 550))
     pygame.display.flip()
