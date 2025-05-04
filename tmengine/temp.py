@@ -1,5 +1,6 @@
 import pygame
 import math
+import sys
 
 """
 Keys (KYS)
@@ -247,25 +248,48 @@ def move_three_heads(tape1, dir1, tape2, dir2, tape3, dir3):
     
     pygame.time.delay(Delay)
 
+
+def draw_rounded_box(surface, rect, color, border_radius=10, border_color=None, border_width=2):
+    pygame.draw.rect(surface, border_color or color, rect, border_radius=border_radius)
+    pygame.draw.rect(surface, color, rect.inflate(-border_width*2, -border_width*2), border_radius=border_radius)
+
 def get_input():
     input_text = ""
     active = True
-    
+    base_box_width = 400
+    input_box_height = 50
+    padding = 20
+
+    clock = pygame.time.Clock()
+
     while active:
         screen.fill(BLACK)
-        prompt = font.render("Enter the two binary digits in the form of (Input1 + Input2) or (Input1 - Input2):", True, WHITE)
-        display_text = font.render(input_text, True, CYAN)
-        
-        #(100,100) here = x and y co-ordinates
-        screen.blit(prompt, (100, 100))
-        screen.blit(display_text, (100, 160))
-        
+
+        prompt_text = "Enter two binary digits like (Input1 + Input2) or (Input1 - Input2):"
+        promp_render = font.render(prompt_text, True, WHITE)
+        input_render = font.render(input_text, True, CYAN)
+        prompt_rect = promp_render.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2 - 60))
+        screen.blit(promp_render, prompt_rect)
+
+        input_width = input_render.get_width()
+
+        #jb input bht sara ho aur base_box_width sy bahr nkl rha ho
+        input_box_width = max(base_box_width, input_width + padding * 2)
+
+        input_box_rect = pygame.Rect(0, 0, input_box_width, input_box_height)
+        input_box_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
+        draw_rounded_box(screen, input_box_rect, color=(30, 30, 30), border_radius=10, border_color=CYAN)
+
+        input_text_rect = input_render.get_rect(center=input_box_rect.center)
+        screen.blit(input_render, input_text_rect)
+
         pygame.display.flip()
-        
+        clock.tick(60)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit()
+                sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     active = False
@@ -273,8 +297,6 @@ def get_input():
                     input_text = input_text[:-1]
                 else:
                     input_text += event.unicode
-
-   
 
     return input_text
 
@@ -291,50 +313,6 @@ def initialize_tape(tape_name, input_str):
     for char in result:
         Tapes[tape_name][pos] = char
         pos += 1
-
-def setup_tape_2():
-    
-    i = Tape_heads["Input_1"]
-    j = Tape_heads["Input_2"]
-
-    while i < len(Tapes["Input_1"]) and Tapes["Input_1"][i] not in ['+', '-']:
-        i += 1
-        move_head("Input_1", "Right")
-
-    if i < len(Tapes["Input_1"]) and Tapes["Input_1"][i] in ['+', '-']:
-        is_subtraction = Tapes["Input_1"][i] == '-'
-        Tapes["Input_1"][i] = '_'
-        move_head("Input_1", "Right")
-        i += 1
-
-        while i < len(Tapes["Input_1"]) and Tapes["Input_1"][i] != '_':
-            bit = Tapes["Input_1"][i]
-            if is_subtraction:
-                # Flip bits for 1's complement
-                bit = '1' if bit == '0' else '0'
-            Tapes["Input_2"][j] = bit
-            Tapes["Input_1"][i] = '_'
-            move_two_heads("Input_1", "Right", "Input_2", "Right")
-            i += 1
-            j += 1
-
-        if is_subtraction:
-            # Add 1 to LSB of Input_2
-            k = j - 1
-            while k >= 0:
-                if Tapes["Input_2"][k] == '0':
-                    Tapes["Input_2"][k] = '1'
-                    break
-                elif Tapes["Input_2"][k] == '1':
-                    Tapes["Input_2"][k] = '0'
-                    k -= 1
-                else:
-                    break
-
-    while i >= 0 and Tapes["Input_1"][i - 1] == '_':
-        i -= 1
-        move_head("Input_1", "Left")
-
 
 STATES = {
     'add_q0': 'Initial scan right',
@@ -358,7 +336,6 @@ STATES = {
 }
 
 def binary_addition_turing():
-    carry = 0 #for subtraction
 
     global current_state
     check = False
@@ -490,18 +467,11 @@ def binary_addition_turing():
             else:
                 current_state = 'add_q_reject'
 
-    
-    # Final display
-    if check!=True:
         result_text = font.render(
             "Addition Complete!" if current_state == 'add_q5' else "Invalid Input - Rejected!",
             True, GREEN if current_state == 'add_q5' else RED
         )
-    else:
-        result_text = font.render(
-        "Subtraction Complete!" if current_state == 'add_q5' else "Invalid Input - Rejected!",
-        True, GREEN if current_state == 'add_q5' else RED
-    )
+  
     screen.blit(result_text, (width//2 - 150, 550))
     pygame.display.flip()
     pygame.time.delay(2000)
