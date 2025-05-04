@@ -300,7 +300,13 @@ def get_input():
 
     return input_text
 
-def initialize_tape(tape_name, input_str):
+def initialize_tape_normal(tape_name,input_str):
+    pos = Tape_heads[tape_name]
+    for char in input_str:
+        Tapes[tape_name][pos] = char
+        pos += 1
+
+def initialize_tape_for_subtraction(tape_name, input_str):
     left,right = input_str.split(operation)
     max_len = max(len(left), len(right))
 
@@ -550,15 +556,18 @@ def binary_subtraction_turing():
     pygame.time.delay(2000)
 
         
-def perform_operation():
+def perform_operation(user_input):
     """Perform the appropriate operation based on the operand"""
     
     if operation == '+':
+        initialize_tape_normal("Input_1", user_input)
         binary_addition_turing()
     elif operation == '-':
+        initialize_tape_for_subtraction("Input_1", user_input)
         binary_subtraction_turing()
     elif operation == '*':
-        pass  # Will implement multiplication later
+        initialize_tape_normal("Input_2",user_input)
+        binary_multiplication_turing()  # Will implement multiplication later
     else:
         raise ValueError("Unsupported operation")
 
@@ -579,10 +588,8 @@ def main():
     
     # Initialize tapes
     set_operation(user_input)
-    initialize_tape("Input_1", user_input)
-
     # Perform the operation
-    perform_operation()
+    perform_operation(user_input)
 
 if __name__ == "__main__":
     main()
